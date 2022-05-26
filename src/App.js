@@ -1,24 +1,47 @@
-import logo from './logo.svg';
-import './App.css';
+import { useState, Fragment } from "react";
+import axios from "axios";
 
 function App() {
+  const [file, setFile] = useState(null);
+  const [uploadedFileURL, setUploadedFileURL] = useState(null);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+
+    const form = new FormData();
+
+    form.append("picture", file);
+
+    try {
+      const response = await axios.put(
+        "http://localhost:8080/api/v1/profiles/1/picture",
+        form,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      // Kalo di upload langsung di-server
+      setUploadedFileURL("http://localhost:8080/" + response.data.url);
+    } catch (err) {
+      console.log(err);
+      console.log(err?.responses?.data);
+    }
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Fragment>
+      {uploadedFileURL && (
+        <img src={uploadedFileURL} alt="Uploaded Image URL" />
+      )}
+
+      <form onSubmit={handleSubmit}>
+        <input type="file" onChange={(e) => setFile(e.target.files[0])} />
+        <input type="submit" value="Upload" />
+      </form>
+    </Fragment>
   );
 }
 
